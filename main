@@ -1,0 +1,406 @@
+
+-- Define the game state
+local gameState = {
+    currentRoom = "start",
+    inventory = { keys = {} }, -- Initialize the 'keys' table inside the 'inventory' table
+    equippedItems = {},
+    rooms = {},
+    attack = 5,   -- Initial player stats
+    defense = 5,
+    wits = 5,
+    maxHealth = 100,
+    health = 100,  -- Initial health
+}
+
+-- Define the valid verbs for the game
+local verbs = {
+    ["go"] = true,
+    ["take"] = true,
+    ["look"] = true,
+    ["use"] = true,
+}
+
+function addRoom(name, description, exits, objects)
+    gameState.rooms[name] = {
+        name = name,
+        description = description,
+        exits = exits,
+        objects = {}, -- Initialize as an empty table
+    }
+
+    -- If 'objects' is provided, add them to the room after converting to lowercase
+    if objects then
+        for _, object in ipairs(objects) do
+            table.insert(gameState.rooms[name].objects, object:lower())
+        end
+    end
+end
+
+
+
+-- Function to move the player to a new room
+function movePlayer(room)
+    gameState.currentRoom = room
+end
+
+-- Function to display the current room and its details
+function showRoom()
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+    print(currentRoom.name)
+    print(currentRoom.description)
+end
+
+function showExits()
+    print(" ")
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+    local exits = currentRoom.exits
+
+    if not exits or next(exits) == nil then
+        print("There are no exits in this room.")
+    else
+        local exitKeys = getKeys(exits)
+        print("Exits: " .. table.concat(exitKeys, ", "))
+    end
+end
+
+
+
+function displayPlayerStats()
+    print("Player Stats:")
+    print("Attack: " .. gameState.attack)
+    print("Defense: " .. gameState.defense)
+    print("Wits: " .. gameState.wits)
+    print("Health: " .. gameState.health .. " / " .. gameState.maxHealth)
+end
+-- Function to extract the verb and object from the player's input
+function extractVerbAndObject(input)
+    -- Trim leading and trailing spaces from the input
+    input = input:match("^%s*(.-)%s*$")
+
+    -- Table of common words to ignore
+    local ignoreWords = {
+        ["the"] = true,
+        ["a"] = true,
+        ["an"] = true,
+        ["to"] = true,
+    }
+
+    -- Split the input into words
+    local words = {}
+    for word in input:gmatch("%S+") do
+        if not ignoreWords[word:lower()] then
+            table.insert(words, word:lower())
+        end
+    end
+
+    -- Extract the verb and object
+    local verb, object
+    if #words >= 2 then
+        verb = words[1]
+        object = table.concat(words, " ", 2)
+    end
+
+    return verb, object
+end
+
+
+
+-- Function to handle the player's input and perform actions
+function handleInput(input)
+    local verb, object = extractVerbAndObject(input)
+
+    -- Perform the action based on the verb and object
+    if verb and verbs[verb] then
+        handleCommand(verb, object)
+    else
+        print("I don't understand that command.")
+    end
+end
+
+
+-- Function to check if a value is present in a table (case-insensitive)
+function contains(tbl, value)
+    local lowerValue = value:lower()
+    for _, v in pairs(tbl) do
+        if v:lower() == lowerValue then
+            return true
+        end
+    end
+    return false
+end
+
+
+
+-- Function to handle the "go" command
+function handleGo(direction)
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+
+    if currentRoom.exits and currentRoom.exits[direction] then
+        movePlayer(currentRoom.exits[direction])
+        showRoom()
+    else
+        print("You can't go that way.")
+    end
+end
+
+
+-- Function to handle the "take" command
+function handleTake(item)
+    takeItem(item)
+end
+
+-- Function to handle the "look" command
+function handleLook(object)
+    lookAtObject(object)
+end
+
+-- Function to handle the "use" command
+function handleUse(object)
+    useObject(object)
+end
+
+-- Function to handle commands based on the verb and object
+function handleCommand(verb, object)
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+
+    if verb == "go" then
+        if currentRoom.exits and currentRoom.exits[object] then
+            movePlayer(currentRoom.exits[object])
+            showRoom()
+        else
+            print("You can't go that way.")
+        end
+    elseif verb == "take" then
+        if object and object ~= "" then
+            takeItem(object)
+        else
+            print("Take what?")
+        end
+    elseif verb == "look" then
+        if object and object ~= "" then
+            lookAtObject(object)
+        else
+            print("Look at what?")
+        end
+    elseif verb == "use" then
+        if object and object ~= "" then
+            useObject(object)
+        else
+            print("Use what?")
+        end
+    else
+        print("I don't understand that command.")
+    end
+end
+
+
+-- Function to use an object in the current room
+function useObject(object)
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+    if currentRoom.name == "armory" and object == "key" then
+        if gameState.inventory.keys["key"] then
+            print("You unlock the door with the key.")
+            currentRoom.exits["east"] = "armory"
+            gameState.inventory.keys["key"] = nil -- Remove the key from the inventory
+        else
+            print("You don't have the key.")
+        end
+    else
+        print("You can't use that here.")
+    end
+end
+
+-- Helper function to simulate sleep
+function customSleep(seconds)
+    local startTime = os.time()
+    repeat until os.time() > startTime + seconds
+end
+
+-- Function to look at an object in the current room
+function lookAtObject(object)
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+    local objectDescription = currentRoom.objectDescriptions[object]
+    if objectDescription then
+        print("You look at the " .. object .. ".")
+        print(objectDescription)
+        customSleep(2)
+    else
+        print("There is nothing special about the " .. object .. ".")
+        customSleep(2)
+    end
+end
+
+function showObjectsInRoom()
+    print(" ")
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+    local objects = currentRoom.objects
+
+    if not objects or next(objects) == nil then
+        print("There are no objects in this room.")
+    else
+        print("Available Objects: " .. table.concat(objects, ", "))
+    end
+end
+
+function displayHealthBar(health, maxHealth, barLength)
+    local numBlocks = math.floor((health / maxHealth) * barLength)
+    local numEmptyBlocks = barLength - numBlocks
+    local healthBar = "[" .. string.rep("#", numBlocks) .. string.rep("-", numEmptyBlocks) .. "]"
+    print("Health: " .. healthBar)
+end
+
+function takeItem(item)
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+    local lowerItem = item:lower() -- Convert the input item to lowercase for comparison
+
+    if currentRoom.objects and contains(currentRoom.objects, lowerItem) then
+        if lowerItem == "key" then
+            gameState.inventory.keys[lowerItem] = true -- Correctly add the key to the keys table in the inventory
+        end
+        print("You took the " .. item .. ".")
+        table.remove(currentRoom.objects, table.indexof(currentRoom.objects, lowerItem)) -- Remove the taken item from the room
+    else
+        print("There is no " .. item .. " in this room.")
+    end
+end
+
+
+
+-- Function to find the index of an element in a table
+function table.indexof(tbl, value)
+    for i, v in ipairs(tbl) do
+        if v == value then
+            return i
+        end
+    end
+    return nil
+end
+
+-- Function to equip an item from the player's inventory
+function equipItem(item)
+    if gameState.inventory[item] then
+        if item == "rusty iron sword" then
+            gameState.equippedItems["weapon"] = item
+            gameState.attack = 5 -- Set the player's attack stat based on equipped weapon (change this as needed)
+        elseif item == "rusty iron shield" then
+            gameState.equippedItems["shield"] = item
+            gameState.defense = 7 -- Set the player's defense stat based on equipped shield (change this as needed)
+        end
+        print("You equipped the " .. item .. ".")
+    else
+        print("You don't have the " .. item .. " in your inventory.")
+    end
+end
+
+-- Function to unequip an item and revert player stats
+function unequipItem(item)
+    if item == "rusty iron sword" then
+        gameState.equippedItems["weapon"] = nil
+        gameState.attack = 5 -- Reset the player's attack stat (change this as needed)
+    elseif item == "rusty iron shield" then
+        gameState.equippedItems["shield"] = nil
+        gameState.defense = 5 -- Reset the player's defense stat (change this as needed)
+    end
+    print("You unequipped the " .. item .. ".")
+end
+
+-- Function to get the names of keys in the inventory.keys table
+function getKeys(tbl)
+    local keys = {}
+    if tbl then
+        for key, _ in pairs(tbl) do
+            table.insert(keys, key)
+        end
+    end
+    return keys
+end
+
+function showInventory()
+    print(" ")
+    print("Inventory:")
+    local keys = getKeys(gameState.inventory.keys)
+    if #keys > 0 then
+        for _, item in ipairs(keys) do
+            print("- " .. item)
+        end
+    else
+        print("Empty")
+    end
+end
+
+-- Function to clear the screen
+function clearScreen()
+    -- Print a series of newline characters to simulate screen clearing
+    for i = 1, 50 do
+        print()
+    end
+end
+
+-- Add rooms and objects to the game state
+addRoom("start", [[
+You awaken in a dimly lit room, the air thick with an unsettling stillness. The musty scent of old wood and dust fills your nostrils. 
+You can barely make out the outlines of wooden furniture against the darkness. A single flickering candle casts eerie shadows on the walls.
+In the corner of the room, you notice a wooden door with a rusty iron handle. It seems to be the only way out. 
+The north door beckons you forward, but something tells you that there may be more to discover here.
+]], { north = "hallway" }, nil) -- Change {} to nil since there are no objects in the "start" room
+
+
+addRoom("hallway", [[
+Stepping into the hallway, you find yourself in a narrow space with faded tapestries adorning the walls, their once-vibrant colors now muted with age. 
+The creaking floorboards beneath your feet add an eerie echo to your every movement. 
+Two tall wooden doors stand before you - one to the north and another to the south. 
+Each door looks weathered and slightly ajar, as if inviting you to explore what lies beyond. 
+A faint draft chills the air, carrying with it a distant whisper that sends shivers down your spine.
+]], { north = "library", south = "start", east = "armory" }, { "key" })
+
+addRoom("library", [[
+You enter a vast library, its shelves stretching from floor to ceiling and filled with ancient tomes and dusty scrolls. 
+The room is illuminated by the soft glow of flickering candles that dance with the gentle breeze from an open window. 
+The smell of parchment and leather fills your senses as you gaze upon the wealth of knowledge that surrounds you. 
+A sense of tranquility washes over you in the midst of this sea of written wisdom.
+]], { south = "hallway" }, { "book" })
+
+addRoom("armory", [[
+As you enter the armory, the faint smell of metal and oil fills your nostrils. 
+Rows of weapon racks line the walls, displaying an assortment of rusted weapons and battered shields. 
+Amidst the discarded armor pieces, you notice a sword and shield that seem to be in relatively better condition than the rest.
+]], { west = "hallway" }, { "rusty iron sword", "rusty iron shield" })
+
+-- Add object descriptions to the game state
+gameState.rooms["library"].objectDescriptions = {
+    book = "This is an old dusty book with faded writing.",
+}
+
+gameState.rooms["hallway"].objectDescriptions = {
+    key = "A rusty old key. It looks like it could unlock something important.",
+}
+
+-- Add objectDescriptions for "armory"
+gameState.rooms["armory"].objectDescriptions = {
+    ["rusty iron sword"] = "A worn but sturdy iron sword. It looks like it can deal 1-3 damage.",
+    ["rusty iron shield"] = "A rusty iron shield that provides 2 defense and has a 10% chance to block attacks.",
+}
+
+-- Add objectDescriptions for "start" room (set it to an empty table)
+gameState.rooms["start"].objectDescriptions = {}
+
+-- Verbs table to store valid verbs for the game
+gameState.verbs = {
+    ["go"] = true,
+    ["take"] = true,
+    ["look"] = true,
+    ["use"] = true,
+}
+
+-- Main game loop
+while true do
+   clearScreen() -- Clear the screen before updating info
+    showRoom()
+    showExits()
+    showObjectsInRoom()
+    displayHealthBar(gameState.health, 100, 20) -- Assuming the player's max health is 100 and the bar is 20 characters long
+    print("Type 'help' for suggestions.")
+    io.write("> ")
+    local input = io.read()
+    handleInput(input)
+end
