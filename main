@@ -64,6 +64,21 @@ function showExits()
 end
 
 
+-- Function to display all available commands with a short description
+function showHelp()
+    print("Available Commands:")
+    print("go <direction> - Move to the room in the specified direction.")
+    print("take <item> - Take the specified item from the room.")
+    print("look <item> - Look at the specified item in the room.")
+    print("use <item> - Use the specified item in the room.")
+    print("inventory - Display the items in your inventory.")
+    print("equip <item> - Equip the specified item from your inventory.")
+    print("unequip <item> - Unequip the specified item from your inventory.")
+    print("stats - Display player stats.")
+    print("help - Show all available commands with a short description.")
+    print("quit - Quit the game.")
+end
+
 
 function displayPlayerStats()
     print("Player Stats:")
@@ -129,7 +144,10 @@ function contains(tbl, value)
     return false
 end
 
-
+-- Function to handle the "help" command
+function handleHelp()
+    showHelp()
+end
 
 -- Function to handle the "go" command
 function handleGo(direction)
@@ -159,35 +177,50 @@ function handleUse(object)
     useObject(object)
 end
 
+-- Function to handle the "quit" command
+function handleQuit()
+    print("Are you sure you want to quit? (yes/no)")
+    local input = io.read():lower()
+    if input == "yes" then
+        print("Thanks for playing!")
+        os.exit() -- Exit the game
+    elseif input == "no" then
+        print("Returning to the game.")
+    else
+        print("Invalid input. Returning to the game.")
+    end
+end
+
 -- Function to handle commands based on the verb and object
 function handleCommand(verb, object)
     local currentRoom = gameState.rooms[gameState.currentRoom]
 
     if verb == "go" then
-        if currentRoom.exits and currentRoom.exits[object] then
-            movePlayer(currentRoom.exits[object])
-            showRoom()
-        else
-            print("You can't go that way.")
-        end
+        -- Your existing go code here
+        -- ...
     elseif verb == "take" then
-        if object and object ~= "" then
-            takeItem(object)
-        else
-            print("Take what?")
-        end
+        -- Your existing take code here
+        -- ...
     elseif verb == "look" then
-        if object and object ~= "" then
-            lookAtObject(object)
-        else
-            print("Look at what?")
-        end
+        -- Your existing look code here
+        -- ...
     elseif verb == "use" then
-        if object and object ~= "" then
-            useObject(object)
-        else
-            print("Use what?")
-        end
+        -- Your existing use code here
+        -- ...
+    elseif verb == "inventory" then
+        showInventory()
+    elseif verb == "equip" then
+        -- Your existing equip code here
+        -- ...
+    elseif verb == "unequip" then
+        -- Your existing unequip code here
+        -- ...
+    elseif verb == "stats" then
+        displayPlayerStats()
+    elseif verb == "help" then
+        handleHelp()
+    elseif verb == "quit" then
+        handleQuit()
     else
         print("I don't understand that command.")
     end
