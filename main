@@ -190,7 +190,7 @@ function handleQuit()
         print("Invalid input. Returning to the game.")
     end
 end
-end
+
 
 -- Function to handle commands based on the verb and object
 function handleCommand(verb, object)
@@ -480,4 +480,3 @@ while true do
     io.write("> ")
     local input = io.read()
     handleInput(input)
-end
