@@ -392,10 +392,41 @@ gameState.verbs = {
     ["use"] = true,
 }
 
+-- Function to check if the output exceeds the screen size and add a "Press any key to continue" message
+function displayWithPause(output)
+    local lines = {}
+    for line in output:gmatch("[^\n]+") do
+        table.insert(lines, line)
+    end
+
+    local screenHeight = 19 -- Adjust this value based on your computer/turtle terminal height
+
+    if #lines <= screenHeight then
+        print(output)
+    else
+        local maxLines = screenHeight - 1
+        for i = 1, maxLines do
+            print(lines[i])
+        end
+        print("Press any key to continue...")
+        os.pullEvent("key")
+        for i = maxLines + 1, #lines do
+            print(lines[i])
+        end
+    end
+end
+
+-- Function to display the current room and its details on the computer/turtle terminal
+function showRoomOnTerminal()
+    local currentRoom = gameState.rooms[gameState.currentRoom]
+    local output = currentRoom.name .. "\n" .. currentRoom.description
+    displayWithPause(output)
+end
+
 -- Main game loop
 while true do
-   clearScreen() -- Clear the screen before updating info
-    showRoom()
+    clearScreen() -- Clear the computer/turtle terminal before updating info
+    showRoomOnTerminal() -- Show the room details on the terminal
     showExits()
     showObjectsInRoom()
     displayHealthBar(gameState.health, 100, 20) -- Assuming the player's max health is 100 and the bar is 20 characters long
