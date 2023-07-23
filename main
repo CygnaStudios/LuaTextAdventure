@@ -226,7 +226,7 @@ function handleCommand(verb, object)
     elseif verb == "equip" then
         equipItem()
     elseif verb == "unequip" then
-        unequipitem
+        unequipitem()
     elseif verb == "stats" then
         displayPlayerStats()
     elseif verb == "help" then
