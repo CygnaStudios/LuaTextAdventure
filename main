@@ -197,7 +197,6 @@ function handleCommand(verb, object)
     local currentRoom = gameState.rooms[gameState.currentRoom]
 
     if verb == "go" then
- if currentRoom.exits and currentRoom.exits[object] then
         if currentRoom.exits and currentRoom.exits[object] then
             movePlayer(currentRoom.exits[object])
             showRoomOnTerminal()
@@ -227,7 +226,7 @@ function handleCommand(verb, object)
     elseif verb == "equip" then
         equipItem()
     elseif verb == "unequip" then
-        unequipitem()
+        unequipItem()
     elseif verb == "stats" then
         displayPlayerStats()
     elseif verb == "help" then
@@ -238,7 +237,6 @@ function handleCommand(verb, object)
         print("I don't understand that command.")
     end
 end
-
 
 -- Function to use an object in the current room
 function useObject(object)
@@ -469,6 +467,7 @@ function showRoomOnTerminal()
     displayWithPause(output)
 end
 
+
 -- Main game loop
 while true do
     clearScreen() -- Clear the computer/turtle terminal before updating info
@@ -480,3 +479,4 @@ while true do
     io.write("> ")
     local input = io.read()
     handleInput(input)
+end
