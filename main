@@ -196,25 +196,37 @@ function handleCommand(verb, object)
     local currentRoom = gameState.rooms[gameState.currentRoom]
 
     if verb == "go" then
-        -- Your existing go code here
-        -- ...
+ if currentRoom.exits and currentRoom.exits[object] then
+        if currentRoom.exits and currentRoom.exits[object] then
+            movePlayer(currentRoom.exits[object])
+            showRoomOnTerminal()
+        else
+            print("You can't go that way.")
+        end
     elseif verb == "take" then
-        -- Your existing take code here
-        -- ...
+        if object and object ~= "" then
+            takeItem(object)
+        else
+            print("Take what?")
+        end
     elseif verb == "look" then
-        -- Your existing look code here
-        -- ...
+        if object and object ~= "" then
+            lookAtObject(object)
+        else
+            print("Look at what?")
+        end
     elseif verb == "use" then
-        -- Your existing use code here
-        -- ...
+        if object and object ~= "" then
+            useObject(object)
+        else
+            print("Use what?")
+        end
     elseif verb == "inventory" then
         showInventory()
     elseif verb == "equip" then
-        -- Your existing equip code here
-        -- ...
+        equipItem()
     elseif verb == "unequip" then
-        -- Your existing unequip code here
-        -- ...
+        unequipitem
     elseif verb == "stats" then
         displayPlayerStats()
     elseif verb == "help" then
