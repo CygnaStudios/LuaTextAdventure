@@ -436,7 +436,7 @@ gameState.verbs = {
     ["use"] = true,
 }
 
--- Function to check if the output exceeds the screen size and add a "Press any key to continue" message
+-- Function to display text with a 3-second pause between messages
 function displayWithPause(output)
     local lines = {}
     for line in output:gmatch("[^\n]+") do
@@ -447,6 +447,7 @@ function displayWithPause(output)
 
     if #lines <= screenHeight then
         print(output)
+        os.sleep(3) -- Pause for 3 seconds
     else
         local maxLines = screenHeight - 1
         for i = 1, maxLines do
@@ -457,6 +458,7 @@ function displayWithPause(output)
         for i = maxLines + 1, #lines do
             print(lines[i])
         end
+        os.sleep(3) -- Pause for 3 seconds
     end
 end
 
