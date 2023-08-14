@@ -1,39 +1,74 @@
-os.loadAPI("paintutils")
-os.loadAPI("term")
+-- Breakout Game in Lua for ComputerCraft (No APIs)
 
+-- Set up the initial variables
 local ballX, ballY = 10, 10
 local ballSpeedX, ballSpeedY = 1, 1
 local paddleX = 10
 local bricks = {}
 local score = 0
+local lives = 3
+local numRows = 1
+local numCols = 5
 
+-- Function to create bricks
+local function createBricks()
+    for row = 1, numRows do
+        for col = 1, numCols do
+            table.insert(bricks, {x = col * 8, y = row * 2, width = 7, height = 2, visible = true})
+        end
+    end
+end
+
+-- Function to move the paddle left and right
+local function movePaddle(direction)
+    if direction == "left" and paddleX > 2 then
+        paddleX = paddleX - 1
+    elseif direction == "right" and paddleX < 36 then
+        paddleX = paddleX + 1
+    end
+end
+
+-- Function to draw game elements
 local function drawGame()
     term.clear()
+    term.setCursorPos(1, 1)
+    
+    -- Draw the ball
     term.setCursorPos(ballX, ballY)
     print("O")
     
+    -- Draw the paddle
     term.setCursorPos(paddleX, 18)
     print("=====")
     
-    for i = 1, #bricks do
-        local brick = bricks[i]
+    -- Draw the bricks
+    for i, brick in ipairs(bricks) do
         if brick.visible then
             term.setCursorPos(brick.x, brick.y)
-            print("###")
+            for j = 1, brick.width do
+                io.write("#")
+            end
         end
     end
     
+    -- Draw the score and lives
     term.setCursorPos(1, 20)
-    print("Score: " .. score)
+    print("Score: " .. score .. "   Lives: " .. lives)
 end
 
-local function updateGame()
-    -- Update ball position
+-- Create initial set of bricks
+createBricks()
+
+-- Main game loop
+while true do
+    drawGame()
+    
+    -- Move the ball
     ballX = ballX + ballSpeedX
     ballY = ballY + ballSpeedY
     
     -- Ball collision with walls
-    if ballX <= 1 or ballX >= 18 then
+    if ballX <= 1 or ballX >= 40 then
         ballSpeedX = -ballSpeedX
     end
     
@@ -42,53 +77,59 @@ local function updateGame()
     end
     
     -- Ball collision with paddle
-    if ballY >= 17 and ballX >= paddleX and ballX <= paddleX + 4 then
+    if ballY >= 18 and ballX >= paddleX and ballX <= paddleX + 4 then
         ballSpeedY = -ballSpeedY
     end
     
     -- Ball collision with bricks
-    for i = 1, #bricks do
-        local brick = bricks[i]
-        if brick.visible and ballX >= brick.x and ballX <= brick.x + 2 and ballY == brick.y + 1 then
+    for i, brick in ipairs(bricks) do
+        if brick.visible and ballX >= brick.x and ballX <= brick.x + brick.width and ballY == brick.y + brick.height then
             brick.visible = false
             ballSpeedY = -ballSpeedY
             score = score + 10
         end
     end
-end
-
-local function updateGame()
-    -- Update ball position
-    ballX = ballX + ballSpeedX
-    ballY = ballY + ballSpeedY
     
-    -- Ball collision with walls
-    if ballX <= 1 or ballX >= 18 then
-        ballSpeedX = -ballSpeedX
+    -- Check for keyboard input to move the paddle
+    if os.pullEvent("key") == keys.a then
+        movePaddle("left")
+    elseif os.pullEvent("key") == keys.d then
+        movePaddle("right")
     end
     
-    if ballY <= 2 then
-        ballSpeedY = -ballSpeedY
-    end
-    
-    -- Ball collision with paddle
-    if ballY >= 17 and ballX >= paddleX and ballX <= paddleX + 4 then
-        ballSpeedY = -ballSpeedY
-    end
-    
-    -- Ball collision with bricks
-    for i = 1, #bricks do
-        local brick = bricks[i]
-        if brick.visible and ballX >= brick.x and ballX <= brick.x + 2 and ballY == brick.y + 1 then
-            brick.visible = false
-            ballSpeedY = -ballSpeedY
-            score = score + 10
+    -- Check if ball goes out of bounds
+    if ballY >= 19 then
+        lives = lives - 1
+        if lives > 0 then
+            ballX, ballY = 20, 10
+            ballSpeedX, ballSpeedY = 1, 1
+        else
+            term.clear()
+            term.setCursorPos(1, 1)
+            print("Game Over! Final Score: " .. score)
+            sleep(5)
+            break
         end
     end
-end
-
-for row = 1, 3 do
-    for col = 1, 5 do
-        table.insert(bricks, {x = col * 4, y = row * 2, visible = true})
+    
+    -- Check if all bricks are destroyed and reset the game
+    local allBricksDestroyed = true
+    for i, brick in ipairs(bricks) do
+        if brick.visible then
+            allBricksDestroyed = false
+            break
+        end
     end
+    
+    if allBricksDestroyed then
+        ballX, ballY = 10, 10
+        ballSpeedX, ballSpeedY = 1, 1
+        paddleX = 10
+        bricks = {}
+        score = 0
+        numRows = numRows + 1
+        createBricks()
+    end
+    
+    sleep(0.1)
 end
