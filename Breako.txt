@@ -1,0 +1,94 @@
+os.loadAPI("paintutils")
+os.loadAPI("term")
+
+local ballX, ballY = 10, 10
+local ballSpeedX, ballSpeedY = 1, 1
+local paddleX = 10
+local bricks = {}
+local score = 0
+
+local function drawGame()
+    term.clear()
+    term.setCursorPos(ballX, ballY)
+    print("O")
+    
+    term.setCursorPos(paddleX, 18)
+    print("=====")
+    
+    for i = 1, #bricks do
+        local brick = bricks[i]
+        if brick.visible then
+            term.setCursorPos(brick.x, brick.y)
+            print("###")
+        end
+    end
+    
+    term.setCursorPos(1, 20)
+    print("Score: " .. score)
+end
+
+local function updateGame()
+    -- Update ball position
+    ballX = ballX + ballSpeedX
+    ballY = ballY + ballSpeedY
+    
+    -- Ball collision with walls
+    if ballX <= 1 or ballX >= 18 then
+        ballSpeedX = -ballSpeedX
+    end
+    
+    if ballY <= 2 then
+        ballSpeedY = -ballSpeedY
+    end
+    
+    -- Ball collision with paddle
+    if ballY >= 17 and ballX >= paddleX and ballX <= paddleX + 4 then
+        ballSpeedY = -ballSpeedY
+    end
+    
+    -- Ball collision with bricks
+    for i = 1, #bricks do
+        local brick = bricks[i]
+        if brick.visible and ballX >= brick.x and ballX <= brick.x + 2 and ballY == brick.y + 1 then
+            brick.visible = false
+            ballSpeedY = -ballSpeedY
+            score = score + 10
+        end
+    end
+end
+
+local function updateGame()
+    -- Update ball position
+    ballX = ballX + ballSpeedX
+    ballY = ballY + ballSpeedY
+    
+    -- Ball collision with walls
+    if ballX <= 1 or ballX >= 18 then
+        ballSpeedX = -ballSpeedX
+    end
+    
+    if ballY <= 2 then
+        ballSpeedY = -ballSpeedY
+    end
+    
+    -- Ball collision with paddle
+    if ballY >= 17 and ballX >= paddleX and ballX <= paddleX + 4 then
+        ballSpeedY = -ballSpeedY
+    end
+    
+    -- Ball collision with bricks
+    for i = 1, #bricks do
+        local brick = bricks[i]
+        if brick.visible and ballX >= brick.x and ballX <= brick.x + 2 and ballY == brick.y + 1 then
+            brick.visible = false
+            ballSpeedY = -ballSpeedY
+            score = score + 10
+        end
+    end
+end
+
+for row = 1, 3 do
+    for col = 1, 5 do
+        table.insert(bricks, {x = col * 4, y = row * 2, visible = true})
+    end
+end
