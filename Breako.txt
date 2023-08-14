@@ -91,9 +91,10 @@ while true do
     end
     
     -- Check for keyboard input to move the paddle
-    if os.pullEvent("key") == keys.a then
+    local event, key = os.pullEvent("key")
+    if key == keys.a then
         movePaddle("left")
-    elseif os.pullEvent("key") == keys.d then
+    elseif key == keys.d then
         movePaddle("right")
     end
     
