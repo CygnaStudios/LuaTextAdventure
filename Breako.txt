@@ -28,6 +28,19 @@ local function movePaddle(direction)
     end
 end
 
+-- Function to play a sound using the in-game speaker
+local function playSound(sound)
+    if sound == "paddle" then
+        rs.setOutput("top", true)
+        sleep(0.1)
+        rs.setOutput("top", false)
+    elseif sound == "brick" then
+        rs.setOutput("back", true)
+        sleep(0.1)
+        rs.setOutput("back", false)
+    end
+end
+
 -- Function to draw game elements
 local function drawGame()
     term.clear()
@@ -79,6 +92,7 @@ while true do
     -- Ball collision with paddle
     if ballY >= 18 and ballX >= paddleX and ballX <= paddleX + 4 then
         ballSpeedY = -ballSpeedY
+        playSound("paddle") -- Play paddle collision sound
     end
     
     -- Ball collision with bricks
@@ -87,6 +101,7 @@ while true do
             brick.visible = false
             ballSpeedY = -ballSpeedY
             score = score + 10
+            playSound("brick") -- Play brick collision sound
         end
     end
     
