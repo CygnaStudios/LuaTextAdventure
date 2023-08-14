@@ -105,14 +105,6 @@ while true do
         end
     end
     
-    -- Check for keyboard input to move the paddle
-    local event, key = os.pullEvent("key")
-    if key == keys.a then
-        movePaddle("left")
-    elseif key == keys.d then
-        movePaddle("right")
-    end
-    
     -- Check if ball goes out of bounds
     if ballY >= 19 then
         lives = lives - 1
